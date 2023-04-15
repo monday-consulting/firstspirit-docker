@@ -82,6 +82,18 @@ A complete set would be:
 * `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
 * `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
 
+## Running tests
+### CST tests
+To run the [Container Structure Tests](https://github.com/GoogleContainerTools/container-structure-test) you need to install the CLI first. Then you can run the tests with
+```console
+container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk17.yaml
+```
+for running test of a JDK 17 image or
+```console
+container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk11.yaml
+```
+for running test of a JDK 11 image.
+
 ## Configuration
 
 ### Environment variables

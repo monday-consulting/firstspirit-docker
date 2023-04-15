@@ -1,0 +1,31 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+  - name: 'Image .version'
+    path: '/install/firstspirit5/.version'
+    shouldExist: true
+  - name: 'Server jar'
+    path: '/install/firstspirit5/server/lib-isolated/fs-isolated-server.jar'
+    shouldExist: true
+    uid: 1000
+    gid: 1000
+  - name: 'Entrypoint'
+    path: '/usr/local/bin/docker-entrypoint.sh'
+    shouldExist: true
+    uid: 0
+    gid: 0
+    isExecutableBy: 'any'
+  - name: 'HealthCheck'
+    path: '/usr/local/bin/health-check.sh'
+    shouldExist: true
+    uid: 0
+    gid: 0
+    isExecutableBy: 'any'
+commandTests:
+  - name: 'Java version'
+    command: "$JAVA_HOME/bin/java"
+    args: ["--version"]
+    expectedOutput: ["11.0"]
+  - name: 'FirstSpirit start'
+    command: "$FS_INSTALLDIR/bin/fs-server"
+    args: [ "start" ]
+    expectedOutput: [ "Starting FirstSpirit Server..." ]
