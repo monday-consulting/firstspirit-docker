@@ -1,6 +1,7 @@
 # FirstSpirit in a Container
 
-THIS PROJECT IS NOT AN OFFICIAL PRODUCT BY [Crownpeak Technology GmbH](https://www.e-spirit.com/). It is maintained and provided by [Monday Consulting](https://www.monday-consultig.com/) to the FirstSpirit Community
+THIS PROJECT IS NOT AN OFFICIAL PRODUCT BY [Crownpeak Technology GmbH](https://www.e-spirit.com/). It is maintained and
+provided by [Monday Consulting](https://www.monday-consultig.com/) to the FirstSpirit Community
 
 ## What is FirstSpirit
 
@@ -70,29 +71,50 @@ docker build -f jdk11/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YO
 docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk17 .
 docker build -f jdk17/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk17 . 
 ```
+
 ### Recommended tagging
+
 The image tagging scheme should be
 
 ``` 
 YOUR_REGISTRY/YOUR_PROJECT/firstspirit[_debug]:(FS-VERSION)-(JDK-VERSION)
 ```
+
 A complete set would be:
+
 * `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk11`
 * `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk11`
 * `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
 * `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
 
 ## Running tests
+
 ### CST tests
-To run the [Container Structure Tests](https://github.com/GoogleContainerTools/container-structure-test) you need to install the CLI first. Then you can run the tests with
+
+To run the [Container Structure Tests](https://github.com/GoogleContainerTools/container-structure-test) you need to
+install the CLI first. Then you can run the tests with
+
 ```console
 container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk17.yaml
 ```
+
 for running test of a JDK 17 image or
+
 ```console
 container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk11.yaml
 ```
+
 for running test of a JDK 11 image.
+
+### InSpec integration tests
+
+To run [Chef InSpec integration tests](https://docs.chef.io/inspec/) you need to install the CLI first. Then you can run
+the tests with:
+```console
+docker run --rm ... # Start a container based on the to test image
+docker ps -q # Get the running container id
+inspec exec ./inspec-tests --input firstspirit_version='5.2.230411' -t docker://CONTAINER_ID # Run the tests    
+```
 
 ## Configuration
 
@@ -105,6 +127,7 @@ environment values are provided to custom FirstSpirit:
 * `EXT_PORT`: The port number, configured in `fs-server.conf`
 
 ### Build variables
+
 The image build process can be customized by specifying the build-args at build time.
 
 * `IMAGE_CREATED`: Image creation date, default `2023-04-14T09:15:59CEST`
