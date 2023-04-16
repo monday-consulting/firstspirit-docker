@@ -87,7 +87,6 @@ COPY --from=install --chown=root /tmp/*.sh /usr/local/bin/
 RUN sed -i '1 i\allowedRedirectHosts=ALLOW_ALL' ${FS_INSTALL_DIRECTORY}/conf/fs-server.conf && \
     chmod +x /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/health-check.sh && \
-    apt-get autoremove --purge -y curl && \
     apt-get update && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
