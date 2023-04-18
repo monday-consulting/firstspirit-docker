@@ -110,6 +110,7 @@ for running test of a JDK 11 image.
 
 To run [Chef InSpec integration tests](https://docs.chef.io/inspec/) you need to install the CLI first. Then you can run
 the tests with:
+
 ```console
 docker run --rm ... # Start a container based on the to test image
 docker ps -q # Get the running container id
@@ -141,3 +142,23 @@ The image build process can be customized by specifying the build-args at build 
 * `FS_BASE_DIRECTORY`: FirstSpirit base directory, default `/opt/firstspirit5`
 * `FS_INSTALL_DIRECTORY`: FirstSpirit install directory, default `/install/firstspirit5`
 * `FS_DEBUG_PORT`: FirstSpirit debug port configuration, default `*:8585`
+
+## Contributing
+
+We'd love for you to contribute to those container images. You can request new features by creating
+an [issue](https://github.com/monday-consulting/firstspirit-docker/issues/new), or submit
+a [pull request](https://github.com/monday-consulting/firstspirit-docker/pulls) with your contribution.
+
+## Legal Notices
+
+FirstSpirit is a product of [Crownpeak Technology GmbH](https://www.e-spirit.com/), Dortmund, Germany.
+
+## Disclaimer
+
+This document is provided for information purposes only. Monday Consulting may change the contents hereof without
+notice. This document is not warranted to be error-free, nor subject to any other warranties or conditions, whether
+expressed orally or implied in law, including implied warranties and conditions of merchantability or fitness for a
+particular purpose. Monday Consulting specifically disclaims any liability with respect to this document and no
+contractual obligations are formed either directly or indirectly by this document. The technologies, functionality,
+services, and processes described herein are subject to change without notice.
+
