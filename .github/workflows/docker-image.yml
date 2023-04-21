@@ -4,6 +4,11 @@ on:
   push:
     branches: [ "develop" ]
 
+env:
+  FS_DOWNLOAD_SERVER=${{ secrets.FS_DOWNLOAD_SERVER }}
+  FS_DOWNLOAD_SERVER_USERNAME=${{ secrets.FS_DOWNLOAD_SERVER_USERNAME }}
+  FS_DOWNLOAD_SERVER_PASSWORD=${{ secrets.FS_DOWNLOAD_SERVER_PASSWORD }}
+
 jobs:
 
   build:
@@ -13,4 +18,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file jdk17/Dockerfile --build-arg FS_DOWNLOAD_SERVER=${{ secrets.FS_DOWNLOAD_SERVER }} --build-arg FS_DOWNLOAD_SERVER_USERNAME=${{ secrets.FS_DOWNLOAD_SERVER_USERNAME }} --build-arg FS_DOWNLOAD_SERVER_USERNAME=${{ secrets.FS_DOWNLOAD_SERVER_USERNAME }} --build-arg IMAGE_CREATED=$(date +%FT%T%Z) --tag my-image-name:$(date +%s)
+      run: docker build . --file jdk17/Dockerfile --build-arg FS_DOWNLOAD_SERVER=${{ env.FS_DOWNLOAD_SERVER }} --build-arg FS_DOWNLOAD_SERVER_USERNAME=${{ env.FS_DOWNLOAD_SERVER_USERNAME }} --build-arg FS_DOWNLOAD_SERVER_PASSWORD=${{ env.FS_DOWNLOAD_SERVER_PASSWORD }} --build-arg IMAGE_CREATED=$(date +%FT%T%Z) --tag my-image-name:$(date +%s)
