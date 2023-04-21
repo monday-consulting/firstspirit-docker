@@ -26,10 +26,10 @@ jobs:
         project: inspec
     - name: Build the Docker image
       run: docker build . --file jdk17/Dockerfile --build-arg FS_DOWNLOAD_SERVER=${{ env.FS_DOWNLOAD_SERVER }} --build-arg FS_DOWNLOAD_SERVER_USERNAME=${{ env.FS_DOWNLOAD_SERVER_USERNAME }} --build-arg FS_DOWNLOAD_SERVER_PASSWORD=${{ env.FS_DOWNLOAD_SERVER_PASSWORD }} --build-arg IMAGE_CREATED=$(date +%FT%T%Z) --tag my-image-name:jdk17
-    - name: Run inSpec Tests
-      run:  inspec exec ./inspec-tests --input firstspirit_version=${{ env.IMAGE_VERSION }} firstspirit_version_short=${{ env.IMAGE_VERSION_SHORT }} -t docker://${{ env.CONTAINER_ID }}
     - name: Start container for test
       run: container_id=$(docker run -d my-image-name:jdk17) && while [[ "$(docker inspect -f '{{.State.Health.Status}}' $container_id)" != "healthy" ]]; do sleep 1; done && echo "Container $container_id is now healthy!" && echo "CONTAINER_ID=$container_id" >> $GITHUB_ENV
+    - name: Run inSpec Tests
+      run:  inspec exec ./inspec-tests --input firstspirit_version=${{ env.IMAGE_VERSION }} firstspirit_version_short=${{ env.IMAGE_VERSION_SHORT }} -t docker://${{ env.CONTAINER_ID }}
     - name: Clean up container
       run: docker stop ${{ env.CONTAINER_ID }} && docker rm ${{ env.CONTAINER_ID }}
 
