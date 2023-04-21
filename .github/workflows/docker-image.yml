@@ -17,6 +17,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: install chef
+      uses: actionshub/chef-install@main
+      with:
+        channel: current
+        project: inspec
+    - name: Echo inspec version
+      run: inspec --version
     - name: Build the Docker image
       run: docker build . --file jdk17/Dockerfile --build-arg FS_DOWNLOAD_SERVER=${{ env.FS_DOWNLOAD_SERVER }} --build-arg FS_DOWNLOAD_SERVER_USERNAME=${{ env.FS_DOWNLOAD_SERVER_USERNAME }} --build-arg FS_DOWNLOAD_SERVER_PASSWORD=${{ env.FS_DOWNLOAD_SERVER_PASSWORD }} --build-arg IMAGE_CREATED=$(date +%FT%T%Z) --tag my-image-name:jdk17
     - name: Start container for test
