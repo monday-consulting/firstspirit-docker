@@ -99,4 +99,8 @@ control "application" do
     its('status') { should cmp 200 }
     its('body') { should match(input('firstspirit_version_short').to_s) }
   end
+
+  describe command(' cat /opt/firstspirit5/log/fs-wrapper.log | grep "INFO: init servlet FSServlet - FirstSpirit" | sed \'s/.*FirstSpirit \([0-9]*\.[0-9]*\.[0-9]*\).*/\1/\'') do
+    its('stdout') { should match(input('firstspirit_version').to_s) }
+  end
 end
