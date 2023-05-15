@@ -10,7 +10,7 @@ ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
 
-FROM ubuntu:jammy AS install
+FROM docker.io/ubuntu:jammy@sha256:ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00 AS install
 # Reuse the global variables
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_SHORT
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install curl -y && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM eclipse-temurin:17-jdk AS jdk
+FROM docker.io/eclipse-temurin:17-jdk@sha256:9dd6a19e4819b066aa2bd8e54d5988a49cca29736fe5447cb0a57daa975f8935 AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
