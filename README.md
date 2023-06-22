@@ -1,7 +1,7 @@
 # FirstSpirit in a Container
 
 THIS PROJECT IS NOT AN OFFICIAL PRODUCT BY [Crownpeak Technology GmbH](https://www.e-spirit.com/). It is maintained and
-provided by [Monday Consulting](https://www.monday-consultig.com/) to the FirstSpirit Community
+provided by [Monday Consulting](https://www.monday-consulting.com/) to the FirstSpirit Community
 
 ## What is FirstSpirit
 
