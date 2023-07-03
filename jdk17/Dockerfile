@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install curl -y && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM docker.io/eclipse-temurin:17-jdk@sha256:2a11a0ab82da51159a1caa58ac37e106a3220820dc836351bb9c3488fc7792d9 AS jdk
+FROM docker.io/eclipse-temurin:17-jdk@sha256:b44dfb46bc455a4996762a65c97a5e1d0f8c71ad5139482003a1b34877518b72 AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
