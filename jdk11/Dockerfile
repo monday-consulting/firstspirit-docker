@@ -1,6 +1,6 @@
-ARG IMAGE_CREATED="2023-06-21T15:00:00CEST"
-ARG IMAGE_VERSION="5.2.230607"
-ARG IMAGE_VERSION_SHORT="2023.6"
+ARG IMAGE_CREATED="2023-07-03T15:00:00CEST"
+ARG IMAGE_VERSION="5.2.230707"
+ARG IMAGE_VERSION_SHORT="2023.7"
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
@@ -59,7 +59,7 @@ ENV FS_BASEDIR="${FS_BASE_DIRECTORY}" \
     FS_INSTALL_VERSION="${FS_INSTALL_VERSION}" \
     FS_JAVA_HOME=$JAVA_HOME
 
-LABEL org.opencontainers.image.base.name="eclipse-temurin:17-jdk" \
+LABEL org.opencontainers.image.base.name="eclipse-temurin:11-jdk" \
     org.opencontainers.image.authors="Monday Consulting GmbH <helpdesk@monday-consulting.com>" \
     org.opencontainers.image.created=${IMAGE_CREATED} \
     org.opencontainers.image.description="FirstSpirit in a Container" \
