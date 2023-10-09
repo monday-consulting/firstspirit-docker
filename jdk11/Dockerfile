@@ -22,10 +22,11 @@ ARG FS_DOWNLOAD_INSTALL_NAME
 
 COPY /config /tmp
 
-RUN apt-get update && apt-get install curl -y && \
+RUN apt-get update && apt-get install curl jq -y && \
     cd /tmp && \
-    curl -SsLfO -u ${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD} ${FS_DOWNLOAD_SERVER}/${IMAGE_VERSION_SHORT}/install/${FS_DOWNLOAD_INSTALL_NAME} && \
-    curl -SsLfO -u ${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD} ${FS_DOWNLOAD_SERVER}/${IMAGE_VERSION_SHORT}/${FS_DOWNLOAD_SERVER_NAME} && \
+    SID=$(curl -Gs --data-urlencode "api=SYNO.API.Auth" -d "version=6" -d "method=login" --data-urlencode "account=${FS_DOWNLOAD_SERVER_USERNAME}" --data-urlencode "passwd=${FS_DOWNLOAD_SERVER_PASSWORD}" "${FS_DOWNLOAD_SERVER}" | jq -r ".data.sid") && \
+    curl -GS -d "api=SYNO.FileStation.Download" -d "version=2" -d "method=download" -d "mode=download" --data-urlencode "path=/customer-download/FirstSpirit/${IMAGE_VERSION_SHORT}/${FS_DOWNLOAD_SERVER_NAME}" --data-urlencode "_sid=${SID}" "${FS_DOWNLOAD_SERVER}" -o "${FS_DOWNLOAD_SERVER_NAME}" && \
+    curl -GS -d "api=SYNO.FileStation.Download" -d "version=2" -d "method=download" -d "mode=download" --data-urlencode "path=/customer-download/FirstSpirit/${IMAGE_VERSION_SHORT}/install/${FS_DOWNLOAD_INSTALL_NAME}" --data-urlencode "_sid=${SID}" "${FS_DOWNLOAD_SERVER}" -o "${FS_DOWNLOAD_INSTALL_NAME}" && \
     tar zxvf /tmp/${FS_DOWNLOAD_INSTALL_NAME} -C /tmp/ && \
     rm /tmp/${FS_DOWNLOAD_INSTALL_NAME} && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
