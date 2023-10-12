@@ -135,8 +135,8 @@ The image build process can be customized by specifying the build-args at build 
 * `IMAGE_VERSION`: Image version same as FirstSpirit version, default `5.2.230411`
 * `IMAGE_VERSION_SHORT`: Image short version same as FirstSpirit version short name, default `2023.4`
 * `FS_DOWNLOAD_SERVER`: Url to the FirstSpirit download server, **mandatory**
-* `FS_DOWNLOAD_SERVER_USERNAME`: Username for the FirstSpirit download server, **mandatory**
-* `FS_DOWNLOAD_SERVER_PASSWORD`: Password for the FirstSpirit download server, **mandatory**
+* `FS_DOWNLOAD_TOKEN_INSTALL`: Download token for the install archive, **mandatory**
+* `FS_DOWNLOAD_TOKEN_SERVER`: Download token for the server jar file, **mandatory**
 * `FS_DOWNLOAD_SERVER_NAME`: Name of the server jar file to be downloaded, default `fs-isolated-server.jar`
 * `FS_DOWNLOAD_INSTALL_NAME`: Name of the installation archive to be downloaded, default `fs-install-3.0.5.tar.gz`
 * `FS_BASE_DIRECTORY`: FirstSpirit base directory, default `/opt/firstspirit5`
