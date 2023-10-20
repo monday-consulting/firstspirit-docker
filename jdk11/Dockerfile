@@ -1,6 +1,6 @@
-ARG IMAGE_CREATED="2023-08-02T14:00:00CEST"
-ARG IMAGE_VERSION="5.2.230812"
-ARG IMAGE_VERSION_SHORT="2023.8"
+ARG IMAGE_CREATED="2023-09-25T14:00:00CEST"
+ARG IMAGE_VERSION="5.2.230814"
+ARG IMAGE_VERSION_SHORT="2023.9"
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
@@ -10,7 +10,7 @@ ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
 
-FROM docker.io/ubuntu:jammy@sha256:b060fffe8e1561c9c3e6dea6db487b900100fc26830b9ea2ec966c151ab4c020 AS install
+FROM docker.io/ubuntu:jammy@sha256:b492494d8e0113c4ad3fe4528a4b5ff89faa5331f7d52c5c138196f69ce176a6 AS install
 # Reuse the global variables
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_SHORT
@@ -22,16 +22,17 @@ ARG FS_DOWNLOAD_INSTALL_NAME
 
 COPY /config /tmp
 
-RUN apt-get update && apt-get install curl -y && \
+RUN apt-get update && apt-get install curl jq -y && \
     cd /tmp && \
-    curl -SsLfO -u ${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD} ${FS_DOWNLOAD_SERVER}/${IMAGE_VERSION_SHORT}/install/${FS_DOWNLOAD_INSTALL_NAME} && \
-    curl -SsLfO -u ${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD} ${FS_DOWNLOAD_SERVER}/${IMAGE_VERSION_SHORT}/${FS_DOWNLOAD_SERVER_NAME} && \
+    SID=$(curl -Gs --data-urlencode "api=SYNO.API.Auth" -d "version=6" -d "method=login" --data-urlencode "account=${FS_DOWNLOAD_SERVER_USERNAME}" --data-urlencode "passwd=${FS_DOWNLOAD_SERVER_PASSWORD}" "${FS_DOWNLOAD_SERVER}" | jq -r ".data.sid") && \
+    curl -GS -d "api=SYNO.FileStation.Download" -d "version=2" -d "method=download" -d "mode=download" --data-urlencode "path=/customer-download/FirstSpirit/${IMAGE_VERSION_SHORT}/${FS_DOWNLOAD_SERVER_NAME}" --data-urlencode "_sid=${SID}" "${FS_DOWNLOAD_SERVER}" -o "${FS_DOWNLOAD_SERVER_NAME}" && \
+    curl -GS -d "api=SYNO.FileStation.Download" -d "version=2" -d "method=download" -d "mode=download" --data-urlencode "path=/customer-download/FirstSpirit/${IMAGE_VERSION_SHORT}/install/${FS_DOWNLOAD_INSTALL_NAME}" --data-urlencode "_sid=${SID}" "${FS_DOWNLOAD_SERVER}" -o "${FS_DOWNLOAD_INSTALL_NAME}" && \
     tar zxvf /tmp/${FS_DOWNLOAD_INSTALL_NAME} -C /tmp/ && \
     rm /tmp/${FS_DOWNLOAD_INSTALL_NAME} && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM docker.io/eclipse-temurin:11-jdk@sha256:d655a09bf7e17eabb3846cd39951546ce142abdc283d6be7b062fac15c7c47eb AS jdk
+FROM docker.io/eclipse-temurin:11-jdk@sha256:cb531d19eb747156cb360aaf1d647f40f38458d1cec7c817079a1e9d4a9598df AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
