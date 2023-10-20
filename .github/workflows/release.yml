@@ -1,0 +1,49 @@
+name: Create Release
+on: 
+  push:
+    branches:
+      -main
+    tags:
+      - '*' # Trigger the workflow on tags starting with 'v'
+
+jobs:
+  create_release:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: check hash
+        id: check_hash
+        run: |
+          pwd
+          # git config --global init.defaultBranch main
+          # git init
+          git ls-remote
+          
+          tag_commit_hash=$(git rev-parse "${GITHUB_REF#refs/heads/}")
+          main_commit_hash=$(git show-ref --hash main)
+          
+          echo "::set-output name=tag_commit_hash::$tag_commit_hash"
+          echo "::set-output name=main_commit_hash::$main_commit_hash"
+          
+          echo main hash: "$main_commit_hash"
+          echo tag hash: "$tag_commit_hash"
+          echo tag: "${{ github.ref_name }}"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        if: ${{ steps.check_hash.outputs.tag_commit_hash == steps.check_hash.outputs.main_commit_hash }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: FirstSpirit # ${{ env.IMAGE_VERSION_SHORT }}
+          draft: false
+          prerelease: false
+
