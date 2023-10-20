@@ -18,6 +18,13 @@ docker run -d -v $(pwd)/config/fs-license.conf:/opt/firstspirit5/conf/fs-license
 
 You can find the available configuration options in the [Environment Variables](#environment-variables) section.
 
+## Supported platforms
+
+The following os architectures are tested by Monday Consulting:
+
+* amd64
+* arm64
+
 ## Usage examples
 
 ### with port mapping
@@ -86,6 +93,17 @@ A complete set would be:
 * `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk11`
 * `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
 * `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
+
+### Build multi-platform images
+
+See the official documentation for more [details](https://docs.docker.com/build/building/multi-platform/).
+
+1. Get the QEMU kernel images `docker run --privileged --rm tonistiigi/binfmt --install all`
+2. Create a new builder and run it `docker buildx create --name <YOUR_BUILDER_NAME_HERE> --driver docker-container --bootstrap`
+3. Use the builder `docker buildx use <YOUR_BUILDER_NAME_HERE>`
+4. Run your build with `buildx` (BuildKit), pushes the image immediately `docker buildx build --platform linux/arm64,linux/amd64 -f jdk17/Dockerfile ... -t <YOUR_IMAGE_TAG_HERE> --push .`
+5. Reset builder to default `docker buildx use default`
+6. Remove builder `docker buildx rm <YOUR_BUILDER_NAME_HERE>`
 
 ## Running tests
 
