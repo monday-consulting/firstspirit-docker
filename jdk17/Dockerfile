@@ -1,16 +1,16 @@
-ARG IMAGE_CREATED="2023-10-26T20:00:00CEST"
-ARG IMAGE_VERSION="5.2.230813"
-ARG IMAGE_VERSION_SHORT="2023.8"
+ARG IMAGE_CREATED="2024-02-28T15:00:00CEST"
+ARG IMAGE_VERSION="5.2.240208"
+ARG IMAGE_VERSION_SHORT="2024.2"
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
 ARG FS_DOWNLOAD_SERVER_NAME="fs-isolated-server.jar"
-ARG FS_DOWNLOAD_INSTALL_NAME="fs-install-3.0.5.tar.gz"
+ARG FS_DOWNLOAD_INSTALL_NAME="fs-install-3.0.8.tar.gz"
 ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
 
-FROM docker.io/ubuntu:jammy@sha256:b492494d8e0113c4ad3fe4528a4b5ff89faa5331f7d52c5c138196f69ce176a6 AS install
+FROM docker.io/ubuntu:jammy@sha256:81bba8d1dde7fc1883b6e95cd46d6c9f4874374f2b360c8db82620b33f6b5ca1 AS install
 # Reuse the global variables
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_SHORT
@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install curl jq -y && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM docker.io/eclipse-temurin:17-jdk@sha256:4046428f68fabf1c44d49a2dc68db4af1b494005416f2f6ff557bc624fc83ec2 AS jdk
+FROM docker.io/eclipse-temurin:17-jdk@sha256:c0f271f2b119561931149c4af5ddd0b579381acb869d656747b6ae3e7799e4bd AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
