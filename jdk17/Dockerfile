@@ -1,6 +1,8 @@
 ARG IMAGE_CREATED="2023-10-27T9:00:00CEST"
 ARG IMAGE_VERSION="5.2.231010"
-ARG IMAGE_VERSION_SHORT="2023.10 Hotfix CVE-2023-4863"
+ARG IMAGE_VERSION_SHORT="2023.10"
+ARG IMAGE_VERSION_HASH="d75ac607"
+ARG IMAGE_VERSION_INSTALL="3.0.6"
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
@@ -10,7 +12,7 @@ ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
 
-FROM docker.io/ubuntu:jammy@sha256:b492494d8e0113c4ad3fe4528a4b5ff89faa5331f7d52c5c138196f69ce176a6 AS install
+FROM docker.io/ubuntu:noble@sha256:8a37d68f4f73ebf3d4efafbcf66379bf3728902a8038616808f04e34a9ab63ee AS install
 # Reuse the global variables
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_SHORT
@@ -22,17 +24,16 @@ ARG FS_DOWNLOAD_INSTALL_NAME
 
 COPY /config /tmp
 
-RUN apt-get update && apt-get install curl jq -y && \
-    cd /tmp && \
-    SID=$(curl -Gs --data-urlencode "api=SYNO.API.Auth" -d "version=6" -d "method=login" --data-urlencode "account=${FS_DOWNLOAD_SERVER_USERNAME}" --data-urlencode "passwd=${FS_DOWNLOAD_SERVER_PASSWORD}" "${FS_DOWNLOAD_SERVER}" | jq -r ".data.sid") && \
-    curl -GS -d "api=SYNO.FileStation.Download" -d "version=2" -d "method=download" -d "mode=download" --data-urlencode "path=/customer-download/FirstSpirit/${IMAGE_VERSION_SHORT}/${FS_DOWNLOAD_SERVER_NAME}" --data-urlencode "_sid=${SID}" "${FS_DOWNLOAD_SERVER}" -o "${FS_DOWNLOAD_SERVER_NAME}" && \
-    curl -GS -d "api=SYNO.FileStation.Download" -d "version=2" -d "method=download" -d "mode=download" --data-urlencode "path=/customer-download/FirstSpirit/${IMAGE_VERSION_SHORT}/install/${FS_DOWNLOAD_INSTALL_NAME}" --data-urlencode "_sid=${SID}" "${FS_DOWNLOAD_SERVER}" -o "${FS_DOWNLOAD_INSTALL_NAME}" && \
-    tar zxvf /tmp/${FS_DOWNLOAD_INSTALL_NAME} -C /tmp/ && \
+RUN apt-get update && apt-get install curl -y
+WORKDIR /tmp
+RUN curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "${FS_DOWNLOAD_SERVER_NAME}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-isolated-server/${IMAGE_VERSION}/fs-isolated-server-${IMAGE_VERSION}.jar"
+RUN curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "${FS_DOWNLOAD_INSTALL_NAME}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-install/${IMAGE_VERSION_INSTALL}/fs-install-${IMAGE_VERSION_INSTALL}.tar.gz"
+RUN tar zxvf /tmp/${FS_DOWNLOAD_INSTALL_NAME} -C /tmp/ && \
     rm /tmp/${FS_DOWNLOAD_INSTALL_NAME} && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM docker.io/eclipse-temurin:17-jdk@sha256:4046428f68fabf1c44d49a2dc68db4af1b494005416f2f6ff557bc624fc83ec2 AS jdk
+FROM docker.io/eclipse-temurin:17-noble@sha256:e65ed1ffbce778bc9d80460d49e7de1395cbb7cbd3a271d2021cc90040f98f80 AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
@@ -57,7 +58,7 @@ ARG HEALTHCHECK_RETRIES
 ENV FS_BASEDIR="${FS_BASE_DIRECTORY}" \
     FS_INSTALLDIR="${FS_INSTALL_DIRECTORY}" \
     FS_VERSION="${IMAGE_VERSION}" \
-    FS_INSTALL_VERSION="${FS_INSTALL_VERSION}" \
+    IMAGE_VERSION_INSTALL="${IMAGE_VERSION_INSTALL}" \
     FS_JAVA_HOME=$JAVA_HOME
 
 LABEL org.opencontainers.image.base.name="eclipse-temurin:17-jdk" \
