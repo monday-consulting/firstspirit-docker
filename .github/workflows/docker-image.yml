@@ -20,7 +20,7 @@ jobs:
     - name: Create variables file
       run: grep 'ARG IMAGE_VERSION=' -m1 jdk17/Dockerfile | sed 's/ARG IMAGE_VERSION="\(.*\)"/IMAGE_VERSION=\1/' >> $GITHUB_ENV && grep 'ARG IMAGE_VERSION_SHORT=' -m1 jdk17/Dockerfile | sed 's/ARG IMAGE_VERSION_SHORT="\(.*\)"/IMAGE_VERSION_SHORT=\1/' >> $GITHUB_ENV
     - name: install chef
-      uses: actionshub/chef-install@main
+      uses: actionshub/chef-install@2.0.4
       with:
         channel: stable
         project: inspec
@@ -29,7 +29,7 @@ jobs:
     - name: Start container for test
       run: container_id=$(docker run -d my-image-name:jdk17) && while [[ "$(docker inspect -f '{{.State.Health.Status}}' $container_id)" != "healthy" ]]; do sleep 1; done && echo "Container $container_id is now healthy!" && echo "CONTAINER_ID=$container_id" >> $GITHUB_ENV
     - name: Run inSpec Tests
-      run:  inspec exec ./inspec-tests --input firstspirit_version=${{ env.IMAGE_VERSION }} firstspirit_version_short=${{ env.IMAGE_VERSION_SHORT }} -t docker://${{ env.CONTAINER_ID }} --chef-license=accept-silent --reporter junit2:junit-test.xml
+      run:  inspec exec ./inspec-tests --input firstspirit_version=${{ env.IMAGE_VERSION }} firstspirit_version_short=${{ env.IMAGE_VERSION_SHORT }} -t docker://${{ env.CONTAINER_ID }} --chef-license=accept --reporter junit2:junit-test.xml
     - name: Clean up container
       run: docker stop ${{ env.CONTAINER_ID }} && docker rm ${{ env.CONTAINER_ID }}
     - name: Publish Test Report
