@@ -69,7 +69,7 @@ don't want this option you have to provide the `base` target to the docker build
 docker build -f jdk17/Dockerfile --target base ...
 ```
 
-For a complete set of images you have run 4 commands:
+For a complete set of images you have run 2 commands:
 
 ```console
 docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk17 .
