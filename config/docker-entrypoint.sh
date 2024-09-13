@@ -18,6 +18,11 @@ cp "$FS_INSTALLDIR/.fs-rt.ver" "$FS_BASEDIR/.fs-rt.ver" && \
 cp -r -n "$FS_INSTALLDIR/conf/." "$FS_BASEDIR/conf" && \
 cp "$FS_INSTALLDIR/.version" "$FS_BASEDIR/.version"
 
+# Adjust version in banner
+sed -i 's/cms\.ftp\.version/'"$FS_VERSION_SHORT"'/g' $FS_INSTALLDIR/banner.txt
+sed -i 's/cms\.version/'"$FS_VERSION"'/g' $FS_INSTALLDIR/banner.txt
+sed -i 's/jdk\.version/'"$JAVA_VERSION"'/g' $FS_INSTALLDIR/banner.txt
+
 cat /opt/firstspirit5/banner.txt
 
 # Clean stalled PIDs
