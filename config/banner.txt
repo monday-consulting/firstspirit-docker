@@ -11,5 +11,5 @@
 #                                                                                                 $$ |                                  
 #                                                                                                 $$ |                                  
 #                                                                                                 \__|                                  
-# FirstSpirit in a docker container (FirstSpirit ${cms.ftp.version}/${cms.version} (${fs.install.mode}), ${jdk.version})
+# FirstSpirit in a docker container (FirstSpirit cms.ftp.version/cms.version (isolated), jdk.version)
 
