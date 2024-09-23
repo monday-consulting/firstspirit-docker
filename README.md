@@ -22,8 +22,8 @@ You can find the available configuration options in the [Environment Variables](
 
 The following os architectures are tested by Monday Consulting:
 
-* amd64
-* arm64
+- amd64
+- arm64
 
 ## Usage examples
 
@@ -46,21 +46,20 @@ images you need a download url and credentials. **These are mandatory and must b
 project **root folder** run
 
 ```console
-docker build -f jdk11/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG-jdk11 .   
+docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG-jdk17 .
 ```
 
 ### Image flavours
 
-Currently, there are two mayor flavors, depending on the base java version
+Currently, there is one mayor flavor, as JDK 11 is not supported for FirstSpirit versions 2023.09 and newer.
 
-* JDK 11
-* JDK 17
+- JDK 17
 
-The mayor flavors are addressed by their respective `Dockerfile`. Choose your flavors by providing the `-f` flag to the
-build command. E.g. for JDK 11
+The mayor flavor is addressed by its respective `Dockerfile`. Choose your flavors by providing the `-f` flag to the
+build command. E.g. for JDK 17
 
 ```console
-docker build -f jdk11/Dockerfile ...
+docker build -f jdk17/Dockerfile ...
 ```
 
 By default, the image is created with debug properties so a developer can remote debug the FirstSpirit server. If you
@@ -70,29 +69,25 @@ don't want this option you have to provide the `base` target to the docker build
 docker build -f jdk17/Dockerfile --target base ...
 ```
 
-For a complete set of images you have run 4 commands:
+For a complete set of images you have run 2 commands:
 
 ```console
-docker build -f jdk11/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk11 .
-docker build -f jdk11/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk11 .   
 docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk17 .
-docker build -f jdk17/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk17 . 
+docker build -f jdk17/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk17 .
 ```
 
 ### Recommended tagging
 
 The image tagging scheme should be
 
-``` 
+```
 YOUR_REGISTRY/YOUR_PROJECT/firstspirit[_debug]:(FS-VERSION)-(JDK-VERSION)
 ```
 
 A complete set would be:
 
-* `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk11`
-* `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk11`
-* `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
-* `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
+- `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
+- `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
 
 ### Build multi-platform images
 
@@ -116,13 +111,7 @@ install the CLI first. Then you can run the tests with
 container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk17.yaml
 ```
 
-for running test of a JDK 17 image or
-
-```console
-container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk11.yaml
-```
-
-for running test of a JDK 11 image.
+for running test of a JDK 17 image
 
 ### InSpec integration tests
 
@@ -132,7 +121,7 @@ the tests with:
 ```console
 docker run --rm ... # Start a container based on the to test image
 docker ps -q # Get the running container id
-inspec exec ./inspec-tests --input firstspirit_version='5.2.230411' -t docker://CONTAINER_ID # Run the tests    
+inspec exec ./inspec-tests --input firstspirit_version='5.2.230411' -t docker://CONTAINER_ID # Run the tests
 ```
 
 ## Configuration
@@ -142,24 +131,24 @@ inspec exec ./inspec-tests --input firstspirit_version='5.2.230411' -t docker://
 The FirstSpirit instance can be customized by specifying environment variables on the first run. The following
 environment values are provided to custom FirstSpirit:
 
-* `EXT_HOSTNAME`: The external hostname, configured in `fs-server.conf`
-* `EXT_PORT`: The port number, configured in `fs-server.conf`
+- `EXT_HOSTNAME`: The external hostname, configured in `fs-server.conf`
+- `EXT_PORT`: The port number, configured in `fs-server.conf`
 
 ### Build variables
 
 The image build process can be customized by specifying the build-args at build time.
 
-* `IMAGE_CREATED`: Image creation date, default `2023-04-14T09:15:59CEST`
-* `IMAGE_VERSION`: Image version same as FirstSpirit version, default `5.2.230411`
-* `IMAGE_VERSION_SHORT`: Image short version same as FirstSpirit version short name, default `2023.4`
-* `FS_DOWNLOAD_SERVER`: Url to the FirstSpirit download server, **mandatory**
-* `FS_DOWNLOAD_SERVER_USERNAME`: Username for the FirstSpirit download server, **mandatory**
-* `FS_DOWNLOAD_SERVER_PASSWORD`: Password for the FirstSpirit download server, **mandatory**
-* `FS_DOWNLOAD_SERVER_NAME`: Name of the server jar file to be downloaded, default `fs-isolated-server.jar`
-* `FS_DOWNLOAD_INSTALL_NAME`: Name of the installation archive to be downloaded, default `fs-install-3.0.5.tar.gz`
-* `FS_BASE_DIRECTORY`: FirstSpirit base directory, default `/opt/firstspirit5`
-* `FS_INSTALL_DIRECTORY`: FirstSpirit install directory, default `/install/firstspirit5`
-* `FS_DEBUG_PORT`: FirstSpirit debug port configuration, default `*:8585`
+- `IMAGE_CREATED`: Image creation date, default `2023-04-14T09:15:59CEST`
+- `IMAGE_VERSION`: Image version same as FirstSpirit version, default `5.2.230411`
+- `IMAGE_VERSION_SHORT`: Image short version same as FirstSpirit version short name, default `2023.4`
+- `FS_DOWNLOAD_SERVER`: Url to the FirstSpirit download server, **mandatory**
+- `FS_DOWNLOAD_SERVER_USERNAME`: Username for the FirstSpirit download server, **mandatory**
+- `FS_DOWNLOAD_SERVER_PASSWORD`: Password for the FirstSpirit download server, **mandatory**
+- `FS_DOWNLOAD_SERVER_NAME`: Name of the server jar file to be downloaded, default `fs-isolated-server.jar`
+- `FS_DOWNLOAD_INSTALL_NAME`: Name of the installation archive to be downloaded, default `fs-install-3.0.5.tar.gz`
+- `FS_BASE_DIRECTORY`: FirstSpirit base directory, default `/opt/firstspirit5`
+- `FS_INSTALL_DIRECTORY`: FirstSpirit install directory, default `/install/firstspirit5`
+- `FS_DEBUG_PORT`: FirstSpirit debug port configuration, default `*:8585`
 
 ## Contributing
 
@@ -179,4 +168,3 @@ expressed orally or implied in law, including implied warranties and conditions 
 particular purpose. Monday Consulting specifically disclaims any liability with respect to this document and no
 contractual obligations are formed either directly or indirectly by this document. The technologies, functionality,
 services, and processes described herein are subject to change without notice.
-
