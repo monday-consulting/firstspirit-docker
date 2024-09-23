@@ -100,7 +100,7 @@ control "application" do
     its('body') { should match(input('firstspirit_version_short').to_s) }
   end
 
-  describe command(' cat /opt/firstspirit5/log/fs-server.log | grep "FirstSpirit Server Version" | sed -E \'s/.*Version ([0-9.]+)\.[0-9]+.*/\1/\'') do
+  describe command(' cat /opt/firstspirit5/log/fs-server.log | grep "FirstSpirit Server Version" | sed -E \'s/.*Version ([0-9]+\.[0-9]+\.[0-9]+)\..*/\1/\'') do
     its('stdout') { should match(input('firstspirit_version').to_s) }
   end
 end
