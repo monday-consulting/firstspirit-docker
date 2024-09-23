@@ -1,13 +1,13 @@
 ARG IMAGE_CREATED="2024-09-13T14:00:00CEST"
-ARG IMAGE_VERSION="5.2.240907"
-ARG IMAGE_VERSION_SHORT="2024.9"
-ARG IMAGE_VERSION_INSTALL="3.0.9"
+ARG IMAGE_VERSION="5.2.241009"
+ARG IMAGE_VERSION_SHORT="2024.10"
+ARG IMAGE_VERSION_INSTALL="3.0.10"
 
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
 ARG FS_DOWNLOAD_SERVER_NAME="fs-isolated-server.jar"
-ARG FS_DOWNLOAD_INSTALL_NAME="fs-install-3.0.8.tar.gz"
+ARG FS_DOWNLOAD_INSTALL_NAME="fs-install-3.0.10.tar.gz"
 ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
@@ -17,7 +17,6 @@ FROM docker.io/ubuntu:noble@sha256:8a37d68f4f73ebf3d4efafbcf66379bf3728902a80386
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_INSTALL
 ARG IMAGE_VERSION_SHORT
-ARG IMAGE_VERSION_HASH
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
@@ -33,7 +32,7 @@ RUN apt-get update && apt-get install curl -y && \
     curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "${FS_DOWNLOAD_INSTALL_NAME}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-install/${IMAGE_VERSION_INSTALL}/fs-install-${IMAGE_VERSION_INSTALL}.tar.gz" && \
     tar zxvf /tmp/${FS_DOWNLOAD_INSTALL_NAME} -C /tmp/ && \
     rm /tmp/${FS_DOWNLOAD_INSTALL_NAME} && \
-    echo "${IMAGE_VERSION}_${IMAGE_VERSION_HASH}" >> /tmp/firstspirit5/.version
+    echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
 FROM docker.io/eclipse-temurin:17-noble@sha256:e65ed1ffbce778bc9d80460d49e7de1395cbb7cbd3a271d2021cc90040f98f80 AS jdk
@@ -72,7 +71,7 @@ LABEL org.opencontainers.image.base.name="eclipse-temurin:17-jdk" \
     org.opencontainers.image.description="FirstSpirit in a Container" \
     org.opencontainers.image.licenses="Apache-2.0" \
     org.opencontainers.image.title="FirstSpirit" \
-    org.opencontainers.image.version=${IMAGE_VERSION}_${IMAGE_VERSION_HASH}
+    org.opencontainers.image.version=${IMAGE_VERSION}
 
 HEALTHCHECK --interval="30s" \
     --timeout="3s" \
