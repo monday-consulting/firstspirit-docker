@@ -81,12 +81,12 @@ control "ports" do
 
   describe port(8000) do
     it { should be_listening }
-    its('protocols') { should include 'tcp' }
+    its('protocols') { should satisfy { |protocols| protocols.include?('tcp') || protocols.include?('tcp6') } }
   end
 
   describe port(1088) do
     it { should be_listening }
-    its('protocols') { should include 'tcp' }
+    its('protocols') { should satisfy { |protocols| protocols.include?('tcp') || protocols.include?('tcp6') } }
   end
 
 end
