@@ -86,8 +86,8 @@ YOUR_REGISTRY/YOUR_PROJECT/firstspirit[_debug]:(FS-VERSION)-(JDK-VERSION)
 
 A complete set would be:
 
-- `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
-- `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
+- `your-registry.local/firstspirit/firstspirit_debug:5.2.241009-jdk17`
+- `your-registry.local/firstspirit/firstspirit:5.2.241009-jdk17`
 
 ### Build multi-platform images
 
