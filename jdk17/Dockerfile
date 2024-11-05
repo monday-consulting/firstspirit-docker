@@ -1,18 +1,17 @@
-ARG IMAGE_CREATED="2024-09-13T14:00:00CEST"
-ARG IMAGE_VERSION="5.2.241009"
-ARG IMAGE_VERSION_SHORT="2024.10"
-ARG IMAGE_VERSION_INSTALL="3.0.10"
+ARG IMAGE_CREATED="2024-10-17T16:00:00CEST"
+ARG IMAGE_VERSION="5.2.241109"
+ARG IMAGE_VERSION_SHORT="2024.11"
+ARG IMAGE_VERSION_INSTALL="3.0.11"
 
 ARG FS_DOWNLOAD_SERVER
 ARG FS_DOWNLOAD_SERVER_USERNAME
 ARG FS_DOWNLOAD_SERVER_PASSWORD
 ARG FS_DOWNLOAD_SERVER_NAME="fs-isolated-server.jar"
-ARG FS_DOWNLOAD_INSTALL_NAME="fs-install-3.0.10.tar.gz"
 ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
 
-FROM docker.io/ubuntu:noble@sha256:8a37d68f4f73ebf3d4efafbcf66379bf3728902a8038616808f04e34a9ab63ee AS install
+FROM docker.io/ubuntu:noble@sha256:d4f6f70979d0758d7a6f81e34a61195677f4f4fa576eaf808b79f17499fd93d1 AS install
 # Reuse the global variables
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_INSTALL
@@ -27,22 +26,24 @@ COPY /config /tmp
 
 WORKDIR /tmp
 
-RUN apt-get update && apt-get install curl -y && \
-    curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "${FS_DOWNLOAD_SERVER_NAME}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-isolated-server/${IMAGE_VERSION}/fs-isolated-server-${IMAGE_VERSION}.jar" && \
-    curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "${FS_DOWNLOAD_INSTALL_NAME}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-install/${IMAGE_VERSION_INSTALL}/fs-install-${IMAGE_VERSION_INSTALL}.tar.gz" && \
-    tar zxvf /tmp/${FS_DOWNLOAD_INSTALL_NAME} -C /tmp/ && \
-    rm /tmp/${FS_DOWNLOAD_INSTALL_NAME} && \
+RUN apt-get update && apt-get install curl -y
+RUN curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "${FS_DOWNLOAD_SERVER_NAME}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-isolated-server/${IMAGE_VERSION}/fs-isolated-server-${IMAGE_VERSION}.jar" && \
+    curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" -o "fs-install-${IMAGE_VERSION_INSTALL}" "${FS_DOWNLOAD_SERVER}/all-mvn-release-external-e-spirit-do/de/espirit/firstspirit/fs-install/${IMAGE_VERSION_INSTALL}/fs-install-${IMAGE_VERSION_INSTALL}.tar.gz" && \
+    tar zxvf /tmp/fs-install-${IMAGE_VERSION_INSTALL} -C /tmp/ && \
+    rm /tmp/fs-install-${IMAGE_VERSION_INSTALL} && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM docker.io/eclipse-temurin:17-noble@sha256:e65ed1ffbce778bc9d80460d49e7de1395cbb7cbd3a271d2021cc90040f98f80 AS jdk
+FROM docker.io/eclipse-temurin:17-noble@sha256:bbecb3fa3c8152f05dbdeb4a88900241b2441d373c0671df98c6c56307c646bf AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
 
-RUN apt-get update && apt-get install procps tini unzip net-tools curl fontconfig -y &&\
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install procps tini unzip net-tools curl fontconfig -y &&\
     cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime &&\
-    echo "Europe/Berlin"> /etc/timezone
+    echo "Europe/Berlin"> /etc/timezone && \
+    apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 FROM jdk AS base
 # Reuse the global variables
@@ -65,7 +66,7 @@ ENV FS_BASEDIR="${FS_BASE_DIRECTORY}" \
     IMAGE_VERSION_INSTALL="${IMAGE_VERSION_INSTALL}" \
     FS_JAVA_HOME=$JAVA_HOME
 
-LABEL org.opencontainers.image.base.name="eclipse-temurin:17-jdk" \
+LABEL org.opencontainers.image.base.name="eclipse-temurin:17-noble" \
     org.opencontainers.image.authors="Monday Consulting GmbH <helpdesk@monday-consulting.com>" \
     org.opencontainers.image.created=${IMAGE_CREATED} \
     org.opencontainers.image.description="FirstSpirit in a Container" \
@@ -92,9 +93,7 @@ COPY --from=install --chown=root /tmp/*.sh /usr/local/bin/
 
 RUN sed -i '1 i\allowedRedirectHosts=ALLOW_ALL' ${FS_INSTALL_DIRECTORY}/conf/fs-server.conf && \
     chmod +x /usr/local/bin/docker-entrypoint.sh && \
-    chmod +x /usr/local/bin/health-check.sh && \
-    apt-get update && apt-get upgrade -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+    chmod +x /usr/local/bin/health-check.sh
 
 ENTRYPOINT [ "/usr/bin/tini", "--", "docker-entrypoint.sh" ]
 

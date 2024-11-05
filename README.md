@@ -46,7 +46,7 @@ images you need a download url and credentials. **These are mandatory and must b
 project **root folder** run
 
 ```console
-docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG-jdk17 .
+docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG-jdk17 .
 ```
 
 ### Image flavours
@@ -72,8 +72,8 @@ docker build -f jdk17/Dockerfile --target base ...
 For a complete set of images you have run 2 commands:
 
 ```console
-docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk17 .
-docker build -f jdk17/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t registry.my-monday-consulting.com/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk17 .
+docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk17 .
+docker build -f jdk17/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk17 .
 ```
 
 ### Recommended tagging
@@ -86,8 +86,8 @@ YOUR_REGISTRY/YOUR_PROJECT/firstspirit[_debug]:(FS-VERSION)-(JDK-VERSION)
 
 A complete set would be:
 
-- `registry.my-monday-consulting.com/firstspirit/firstspirit_debug:5.2.230411-jdk17`
-- `registry.my-monday-consulting.com/firstspirit/firstspirit:5.2.230411-jdk17`
+- `your-registry.local/firstspirit/firstspirit_debug:5.2.241009-jdk17`
+- `your-registry.local/firstspirit/firstspirit:5.2.241009-jdk17`
 
 ### Build multi-platform images
 
