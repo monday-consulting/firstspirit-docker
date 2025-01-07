@@ -34,7 +34,7 @@ RUN curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" 
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
 
-FROM docker.io/eclipse-temurin:17-noble@sha256:8c4993cabdb82589b76686e365811917ca50933c583bfdbea40605e02df08528 AS jdk
+FROM docker.io/eclipse-temurin:21-noble@sha256:e6c3f748e5c958b0619fd2090c0992fc302e62f2bf51bca21c9da4c87d38e4a3 AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
@@ -66,7 +66,7 @@ ENV FS_BASEDIR="${FS_BASE_DIRECTORY}" \
     IMAGE_VERSION_INSTALL="${IMAGE_VERSION_INSTALL}" \
     FS_JAVA_HOME=$JAVA_HOME
 
-LABEL org.opencontainers.image.base.name="eclipse-temurin:17-noble" \
+LABEL org.opencontainers.image.base.name="eclipse-temurin:21-noble" \
     org.opencontainers.image.authors="Monday Consulting GmbH <helpdesk@monday-consulting.com>" \
     org.opencontainers.image.created=${IMAGE_CREATED} \
     org.opencontainers.image.description="FirstSpirit in a Container" \
