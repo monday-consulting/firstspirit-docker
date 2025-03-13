@@ -27,41 +27,41 @@ cp "$FS_INSTALLDIR/banner.txt" "$FS_BASEDIR/banner.txt"
 cat $FS_BASEDIR/banner.txt
 
 # Clean stalled PIDs
-if [ "$1" = 'start' -a -f /opt/firstspirit5/run/fs-server.pid ];
+if [ "$1" = 'start' -a -f $FS_BASEDIR/run/fs-server.pid ];
     then
-        rm /opt/firstspirit5/run/fs-server.pid;
+        rm $FS_BASEDIR/run/fs-server.pid;
 fi
 
 # Take ownership for fs5 user
 echo "Taking care fs user owns firstspirit5 directory"
-chown -R fs:fs /opt/firstspirit5
+chown -R fs:fs $FS_BASEDIR
 
 # Check if folders are mounted into container
-if [ -d "/opt/firstspirit5/conf" ]
+if [ -d "$FS_BASEDIR/conf" ]
     then
         echo "Found firstspirit conf directory"
     else
         echo "No firstspirit conf directory found"
 fi
-if [ -d "/opt/firstspirit5/data" ]
+if [ -d "$FS_BASEDIR/data" ]
     then
         echo "Found firstspirit data directory"
     else
         echo "No firstspirit data directory found"
 fi
-if [ -d "/opt/firstspirit5/web" ]
+if [ -d "$FS_BASEDIR/web" ]
     then
         echo "Found firstspirit web directory"
     else
         echo "No firstspirit web directory found"
 fi
-if [ -d "/opt/firstspirit5/export" ]
+if [ -d "$FS_BASEDIR/export" ]
     then
         echo "Found firstspirit export directory"
     else
         echo "No firstspirit export directory found"
 fi
-if [ -d "/opt/firstspirit5/log" ]
+if [ -d "$FS_BASEDIR/log" ]
     then
         echo "Found firstspirit log directory"
     else
@@ -70,13 +70,13 @@ fi
 
 # inject the external hostname if it exists
 if [ -n "$EXT_HOSTNAME" ]; then
-  sed -i "7i URL=$EXT_HOSTNAME" /opt/firstspirit5/conf/fs-server.conf
+  sed -i "7i URL=$EXT_HOSTNAME" $FS_BASEDIR/conf/fs-server.conf
   echo "URL=$EXT_HOSTNAME written to fs-server.conf"
 fi
 
 # inject the external port if it exists
 if [ -n "$EXT_PORT" ]; then
-  sed -i "s/^HTTP_PORT=.*/HTTP_PORT=$EXT_PORT/" /opt/firstspirit5/conf/fs-server.conf
+  sed -i "s/^HTTP_PORT=.*/HTTP_PORT=$EXT_PORT/" $FS_BASEDIR/conf/fs-server.conf
   echo "HTTP_PORT=$EXT_PORT written to fs-server.conf"
 fi
 
@@ -85,6 +85,6 @@ mkdir -p /opt/www/html
 chown -R fs:fs /opt/www
 
 # Run FirstSpirit
-su fs -c "/opt/firstspirit5/bin/fs-server $*"
+su fs -c "$FS_BASEDIR/bin/fs-server $*"
 
-exec tail -F /opt/firstspirit5/log/fs-wrapper.log /opt/firstspirit5/log/fs-server.log
+exec tail -F $FS_BASEDIR/log/fs-wrapper.log $FS_BASEDIR/log/fs-server.log
