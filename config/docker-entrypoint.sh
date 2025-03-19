@@ -22,8 +22,9 @@ cp "$FS_INSTALLDIR/.version" "$FS_BASEDIR/.version"
 sed -i 's/cms\.ftp\.version/'"$FS_VERSION_SHORT"'/g' $FS_INSTALLDIR/banner.txt
 sed -i 's/cms\.version/'"$FS_VERSION"'/g' $FS_INSTALLDIR/banner.txt
 sed -i 's/jdk\.version/'"$JAVA_VERSION"'/g' $FS_INSTALLDIR/banner.txt
+cp "$FS_INSTALLDIR/banner.txt" "$FS_BASEDIR/banner.txt"
 
-cat /opt/firstspirit5/banner.txt
+cat $FS_BASEDIR/banner.txt
 
 # Clean stalled PIDs
 if [ "$1" = 'start' -a -f /opt/firstspirit5/run/fs-server.pid ];
