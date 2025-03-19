@@ -1,5 +1,5 @@
 #!/bin/sh
-fileName="/opt/firstspirit5/.fs.lock"
+fileName="$FS_BASEDIR/.fs.lock"
 
 # Check if lockfile exists
 test -f $fileName || exit 1
