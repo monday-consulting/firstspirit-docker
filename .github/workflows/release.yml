@@ -1,10 +1,9 @@
 name: Create Release
-on: 
+on:
   push:
-    branches:
-      -main
+    branches: -main
     tags:
-      - '*' # Trigger the workflow on tags starting with 'v'
+      - "*"
 
 jobs:
   create_release:
@@ -15,7 +14,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
+
       - name: check hash
         id: check_hash
         run: |
@@ -23,13 +22,13 @@ jobs:
           # git config --global init.defaultBranch main
           # git init
           git ls-remote
-          
+
           tag_commit_hash=$(git rev-parse "${GITHUB_REF#refs/heads/}")
           main_commit_hash=$(git show-ref --hash main)
-          
+
           echo "::set-output name=tag_commit_hash::$tag_commit_hash"
           echo "::set-output name=main_commit_hash::$main_commit_hash"
-          
+
           echo main hash: "$main_commit_hash"
           echo tag hash: "$tag_commit_hash"
           echo tag: "${{ github.ref_name }}"
@@ -47,3 +46,18 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Bitbucket Pipeline Trigger
+        id: bitbucket_pipeline_trigger
+        if: ${{ steps.check_hash.outputs.tag_commit_hash == steps.check_hash.outputs.main_commit_hash }}
+        run: |
+          curl -X POST "${{secrets.PIPELINE_URL}}" \
+            -u ${{ secrets.PIPELINE_USERNAME }}:${{secrets.PIPELINE_PASSWORD}} \
+            -H "Content-Type: application/json" \
+            -d '
+            {
+              "target": {
+                "ref_type": "branch",
+                "type": "pipeline_ref_target",
+                "ref_name": "main"
+              }
+            }'
