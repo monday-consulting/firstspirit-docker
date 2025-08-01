@@ -33,7 +33,6 @@ RUN curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" 
     rm /tmp/fs-install-${IMAGE_VERSION_INSTALL} && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
-
 FROM docker.io/eclipse-temurin:17-noble@sha256:562ae5e1a40bf6aa91bf2bba8e182389e1fba3d0fe2b1db77b027dd1dce72c4e AS jdk
 
 ENV LANG="de_DE.UTF-8" \
