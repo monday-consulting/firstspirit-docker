@@ -5,7 +5,7 @@ set -e
 # Copy install files on first startup
 if [ ! -f "$FS_BASEDIR/INSTALL_FILES_COPIED" ];
   then
-    cp -r -n "$FS_INSTALLDIR/." "$FS_BASEDIR"
+    cp -r --update=none "$FS_INSTALLDIR/." "$FS_BASEDIR"
     touch "$FS_BASEDIR/INSTALL_FILES_COPIED"
 fi
 
@@ -15,7 +15,7 @@ echo "Version files are different. Updating firstspirit server..." && \
 cp -r "$FS_INSTALLDIR/server/." "$FS_BASEDIR/server" && \
 cp -r "$FS_INSTALLDIR/bin/." "$FS_BASEDIR/bin" && \
 cp "$FS_INSTALLDIR/.fs-rt.ver" "$FS_BASEDIR/.fs-rt.ver" && \
-cp -r -n "$FS_INSTALLDIR/conf/." "$FS_BASEDIR/conf" && \
+cp -r --update=none "$FS_INSTALLDIR/conf/." "$FS_BASEDIR/conf" && \
 cp "$FS_INSTALLDIR/.version" "$FS_BASEDIR/.version"
 
 # Adjust version in banner
