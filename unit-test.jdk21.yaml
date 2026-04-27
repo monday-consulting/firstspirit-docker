@@ -24,7 +24,7 @@ commandTests:
   - name: 'Java version'
     command: "$JAVA_HOME/bin/java"
     args: ["--version"]
-    expectedOutput: ["17.0"]
+    expectedOutput: ["21"]
   - name: 'FirstSpirit start'
     command: "$FS_INSTALLDIR/bin/fs-server"
     args: [ "start" ]
