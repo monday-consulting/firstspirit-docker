@@ -46,34 +46,34 @@ images you need a download url and credentials. **These are mandatory and must b
 project **root folder** run
 
 ```console
-docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG-jdk17 .
+docker build -f jdk21/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG-jdk21 .
 ```
 
 ### Image flavours
 
-Currently, there is one mayor flavor, as JDK 11 is not supported for FirstSpirit versions 2023.09 and newer.
+Currently, there is one mayor flavor, as JDK 17 is not supported for FirstSpirit versions 2026.05 and newer.
 
-- JDK 17
+- JDK 21
 
 The mayor flavor is addressed by its respective `Dockerfile`. Choose your flavors by providing the `-f` flag to the
-build command. E.g. for JDK 17
+build command. E.g. for JDK 21
 
 ```console
-docker build -f jdk17/Dockerfile ...
+docker build -f jdk21/Dockerfile ...
 ```
 
 By default, the image is created with debug properties so a developer can remote debug the FirstSpirit server. If you
-don't want this option you have to provide the `base` target to the docker build. E.g. for JDK 17
+don't want this option you have to provide the `base` target to the docker build. E.g. for JDK 21
 
 ```console
-docker build -f jdk17/Dockerfile --target base ...
+docker build -f jdk21/Dockerfile --target base ...
 ```
 
 For a complete set of images you have run 2 commands:
 
 ```console
-docker build -f jdk17/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk17 .
-docker build -f jdk17/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk17 .
+docker build -f jdk21/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG_GOES-HERE-jdk21 .
+docker build -f jdk21/Dockerfile --target base --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit:YOUR-TAG_GOES-HERE-jdk21 .
 ```
 
 ### Recommended tagging
@@ -86,8 +86,8 @@ YOUR_REGISTRY/YOUR_PROJECT/firstspirit[_debug]:(FS-VERSION)-(JDK-VERSION)
 
 A complete set would be:
 
-- `your-registry.local/firstspirit/firstspirit_debug:5.2.241009-jdk17`
-- `your-registry.local/firstspirit/firstspirit:5.2.241009-jdk17`
+- `your-registry.local/firstspirit/firstspirit_debug:5.2.260513-jdk21`
+- `your-registry.local/firstspirit/firstspirit:5.2.260513-jdk21`
 
 ### Build multi-platform images
 
@@ -96,7 +96,7 @@ See the official documentation for more [details](https://docs.docker.com/build/
 1. Get the QEMU kernel images `docker run --privileged --rm tonistiigi/binfmt --install all`
 2. Create a new builder and run it `docker buildx create --name <YOUR_BUILDER_NAME_HERE> --driver docker-container --bootstrap`
 3. Use the builder `docker buildx use <YOUR_BUILDER_NAME_HERE>`
-4. Run your build with `buildx` (BuildKit), pushes the image immediately `docker buildx build --platform linux/arm64,linux/amd64 -f jdk17/Dockerfile ... -t <YOUR_IMAGE_TAG_HERE> --push .`
+4. Run your build with `buildx` (BuildKit), pushes the image immediately `docker buildx build --platform linux/arm64,linux/amd64 -f jdk21/Dockerfile ... -t <YOUR_IMAGE_TAG_HERE> --push .`
 5. Reset builder to default `docker buildx use default`
 6. Remove builder `docker buildx rm <YOUR_BUILDER_NAME_HERE>`
 
@@ -108,10 +108,10 @@ To run the [Container Structure Tests](https://github.com/GoogleContainerTools/c
 install the CLI first. Then you can run the tests with
 
 ```console
-container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk17.yaml
+container-structure-test test --image firstspirit/firstspirit_debug:[YOUR_TAG] --config unit-test.jdk21.yaml
 ```
 
-for running test of a JDK 17 image
+for running test of a JDK 21 image
 
 ### InSpec integration tests
 
