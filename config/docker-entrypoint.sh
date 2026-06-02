@@ -87,4 +87,17 @@ chown -R fs:fs /opt/www
 # Run FirstSpirit
 su fs -c "$FS_BASEDIR/bin/fs-server $*"
 
-exec tail -F $FS_BASEDIR/log/fs-wrapper.log $FS_BASEDIR/log/fs-server.log
+stop_firstspirit() {
+    echo "Received $1, stopping FirstSpirit gracefully..."
+    su fs -c "$FS_BASEDIR/bin/fs-server stop"
+    kill "$TAIL_PID" 2>/dev/null
+    wait "$TAIL_PID" 2>/dev/null
+    exit 0
+}
+
+trap 'stop_firstspirit TERM' TERM
+trap 'stop_firstspirit INT' INT
+
+tail -F "$FS_BASEDIR/log/fs-wrapper.log" "$FS_BASEDIR/log/fs-server.log" &
+TAIL_PID=$!
+wait "$TAIL_PID"
