@@ -88,6 +88,7 @@ chown -R fs:fs /opt/www
 su fs -c "$FS_BASEDIR/bin/fs-server $*"
 
 stop_firstspirit() {
+    set +e
     echo "Received $1, stopping FirstSpirit gracefully..."
     su fs -c "$FS_BASEDIR/bin/fs-server stop"
     kill "$TAIL_PID" 2>/dev/null
