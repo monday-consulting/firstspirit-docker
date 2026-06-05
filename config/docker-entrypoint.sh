@@ -34,7 +34,7 @@ fi
 
 # Take ownership for fs5 user
 echo "Taking care fs user owns firstspirit5 directory"
-chown -R fs:fs $FS_BASEDIR
+chown -R fs:fs $FS_BASEDIR 2>&1 || true
 
 # Check if folders are mounted into container
 if [ -d "$FS_BASEDIR/conf" ]
@@ -87,4 +87,18 @@ chown -R fs:fs /opt/www
 # Run FirstSpirit
 su fs -c "$FS_BASEDIR/bin/fs-server $*"
 
-exec tail -F $FS_BASEDIR/log/fs-wrapper.log $FS_BASEDIR/log/fs-server.log
+stop_firstspirit() {
+    set +e
+    echo "Received $1, stopping FirstSpirit gracefully..."
+    su fs -c "$FS_BASEDIR/bin/fs-server stop"
+    kill "$TAIL_PID" 2>/dev/null
+    wait "$TAIL_PID" 2>/dev/null
+    exit 0
+}
+
+trap 'stop_firstspirit TERM' TERM
+trap 'stop_firstspirit INT' INT
+
+tail -F "$FS_BASEDIR/log/fs-wrapper.log" "$FS_BASEDIR/log/fs-server.log" &
+TAIL_PID=$!
+wait "$TAIL_PID"

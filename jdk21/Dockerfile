@@ -1,6 +1,6 @@
-ARG IMAGE_CREATED="2026-04-24T14:00:00CEST"
-ARG IMAGE_VERSION="5.2.260513"
-ARG IMAGE_VERSION_SHORT="2026.5"
+ARG IMAGE_CREATED="2026-06-05T00:00:00CEST"
+ARG IMAGE_VERSION="5.2.260610"
+ARG IMAGE_VERSION_SHORT="2026.6"
 ARG IMAGE_VERSION_INSTALL="3.1.8"
 
 ARG FS_DOWNLOAD_SERVER
@@ -11,7 +11,7 @@ ARG FS_BASE_DIRECTORY="/opt/firstspirit5"
 ARG FS_INSTALL_DIRECTORY="/install/firstspirit5"
 ARG FS_DEBUG_PORT="*:8585"
 
-FROM docker.io/ubuntu:noble@sha256:c4a8d5503dfb2a3eb8ab5f807da5bc69a85730fb49b5cfca2330194ebcc41c7b AS install
+FROM docker.io/ubuntu:noble@sha256:786a8b558f7be160c6c8c4a54f9a57274f3b4fb1491cf65146521ae77ff1dc54 AS install
 # Reuse the global variables
 ARG IMAGE_VERSION
 ARG IMAGE_VERSION_INSTALL
@@ -33,7 +33,7 @@ RUN curl -Sf -u "${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}" 
     rm /tmp/fs-install-${IMAGE_VERSION_INSTALL} && \
     echo "${IMAGE_VERSION}" >> /tmp/firstspirit5/.version
 
-FROM docker.io/eclipse-temurin:21-noble@sha256:4ae3c996117de6f25f8544cc4b173d7ca1e4de49b4a535f8dd50b9cd38ee4804 AS jdk
+FROM docker.io/eclipse-temurin:21-noble@sha256:81cecb98bcca2d5d5c3d496e71779073865db0d0bd776ecf434e017f20dac638 AS jdk
 
 ENV LANG="de_DE.UTF-8" \
     LANGUAGE="de_DE.UTF-8"
