@@ -34,7 +34,7 @@ fi
 
 # Take ownership for fs5 user
 echo "Taking care fs user owns firstspirit5 directory"
-chown -R fs:fs $FS_BASEDIR
+chown -R fs:fs $FS_BASEDIR 2>&1 || true
 
 # Check if folders are mounted into container
 if [ -d "$FS_BASEDIR/conf" ]
