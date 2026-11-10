@@ -1,63 +1,99 @@
 name: Create Release
+
+# Creates the GitHub release for the newest tag on main and starts the Bitbucket
+# pipeline (firstspirit-docker-push) that builds and pushes the image.
+#
+# Runs on every push to main and on every tag push, so the order does not matter:
+# main pushed directly together with the tag, or main updated through a pull request
+# before or after the tag is pushed. The release tag is found the same way the
+# Bitbucket pipeline finds it: `git describe --tags --abbrev=0` on main. If a GitHub
+# release for that tag already exists, the run does nothing.
+#
+# "Run workflow" starts the Bitbucket pipeline again for the newest tag on main, even
+# if the release already exists (for example after a failed pipeline run).
+
 on:
   push:
-    branches: -main
+    branches:
+      - main
     tags:
       - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: create-release
+  cancel-in-progress: false
 
 jobs:
   create_release:
-    permissions: write-all
     runs-on: ubuntu-latest
     steps:
-      - name: checkout code
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: check hash
-        id: check_hash
-        run: |
-          pwd
-          # git config --global init.defaultBranch main
-          # git init
-          git ls-remote
-
-          tag_commit_hash=$(git rev-parse "${GITHUB_REF#refs/heads/}")
-          main_commit_hash=$(git show-ref --hash main)
-
-          echo "::set-output name=tag_commit_hash::$tag_commit_hash"
-          echo "::set-output name=main_commit_hash::$main_commit_hash"
-
-          echo main hash: "$main_commit_hash"
-          echo tag hash: "$tag_commit_hash"
-          echo tag: "${{ github.ref_name }}"
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        if: ${{ steps.check_hash.outputs.tag_commit_hash == steps.check_hash.outputs.main_commit_hash }}
+      - name: Find the release tag on main
+        id: tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: FirstSpirit # ${{ env.IMAGE_VERSION_SHORT }}
-          draft: false
-          prerelease: false
-
-      - name: Bitbucket Pipeline Trigger
-        id: bitbucket_pipeline_trigger
-        if: ${{ steps.check_hash.outputs.tag_commit_hash == steps.check_hash.outputs.main_commit_hash }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -X POST "${{secrets.PIPELINE_URL}}" \
-            -u ${{ secrets.PIPELINE_USERNAME }}:${{secrets.PIPELINE_PASSWORD}} \
+          git fetch --force --tags origin
+          tag=$(git describe --tags --abbrev=0 origin/main)
+          version=$(git show "${tag}:jdk21/Dockerfile" | sed -n 's/^ARG IMAGE_VERSION="\(.*\)"/\1/p')
+          version_short=$(git show "${tag}:jdk21/Dockerfile" | sed -n 's/^ARG IMAGE_VERSION_SHORT="\(.*\)"/\1/p')
+          echo "Newest tag on main: ${tag} (Dockerfile: ${version}, ${version_short})"
+
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Tag ${tag} does not match IMAGE_VERSION ${version} in jdk21/Dockerfile. The image would get a wrong tag."
+            exit 1
+          fi
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release ${tag} already exists."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version_short=${version_short}" >> "$GITHUB_OUTPUT"
+
+      # The pipeline is started before the release is created: if it fails, the release
+      # does not exist yet and "Re-run jobs" tries again.
+      - name: Start Bitbucket pipeline
+        if: steps.tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
+        env:
+          PIPELINE_URL: ${{ secrets.PIPELINE_URL }}
+          PIPELINE_USERNAME: ${{ secrets.PIPELINE_USERNAME }}
+          PIPELINE_PASSWORD: ${{ secrets.PIPELINE_PASSWORD }}
+          PIPELINE_TOKEN: ${{ secrets.PIPELINE_TOKEN }}
+        run: |
+          # A Bitbucket access token (PIPELINE_TOKEN) is used if set, otherwise username/password.
+          if [ -n "$PIPELINE_TOKEN" ]; then
+            auth=(-H "Authorization: Bearer ${PIPELINE_TOKEN}")
+          else
+            auth=(-u "${PIPELINE_USERNAME}:${PIPELINE_PASSWORD}")
+          fi
+          status=$(curl -sS -o response.json -w '%{http_code}' -X POST "$PIPELINE_URL" \
+            "${auth[@]}" \
             -H "Content-Type: application/json" \
-            -d '
-            {
-              "target": {
-                "ref_type": "branch",
-                "type": "pipeline_ref_target",
-                "ref_name": "main"
-              }
-            }'
+            -d '{"target": {"ref_type": "branch", "type": "pipeline_ref_target", "ref_name": "main"}}')
+          echo "Bitbucket answered HTTP ${status}"
+          if [ "$status" != "201" ]; then
+            echo "::error::Bitbucket pipeline was not started (HTTP ${status})."
+            cat response.json
+            exit 1
+          fi
+          jq -r '"Pipeline #\(.build_number) started for \(.target.ref_name)"' response.json
+
+      - name: Create GitHub release
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION_SHORT: ${{ steps.tag.outputs.version_short }}
+        run: gh release create "$TAG" --verify-tag --title "$TAG" --notes "FirstSpirit ${VERSION_SHORT}"
