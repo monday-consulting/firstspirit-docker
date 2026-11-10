@@ -1,0 +1,202 @@
+name: Check for FirstSpirit update
+
+# Looks for the next FirstSpirit release in the Crownpeak Artifactory. If there is one, it
+# updates jdk21/Dockerfile (versions + base image digests), builds and tests the image
+# and opens an issue and a pull request against develop.
+#
+# Releases are handled one at a time, so every release gets its own tag and image.
+# The run does nothing while an update pull request is open or while an update is
+# merged into develop but not released yet. After a release, "Run workflow" picks up
+# the next one immediately.
+#
+# Local test with act (the GitHub API steps are skipped there):
+#   act workflow_dispatch -W .github/workflows/check-fs-update.yml --secret-file ~/.config/fs-docker/credentials
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: check-fs-update
+  cancel-in-progress: false
+
+env:
+  FS_DOWNLOAD_SERVER: ${{ secrets.FS_DOWNLOAD_SERVER }}
+  FS_DOWNLOAD_SERVER_USERNAME: ${{ secrets.FS_DOWNLOAD_SERVER_USERNAME }}
+  FS_DOWNLOAD_SERVER_PASSWORD: ${{ secrets.FS_DOWNLOAD_SERVER_PASSWORD }}
+  TEST_IMAGE: fs-update-test:jdk21
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0 # tags and main are needed for the release check
+
+      - name: Check that the last update is released
+        id: released
+        run: |
+          develop_version=$(sed -n 's/^ARG IMAGE_VERSION="\(.*\)"/\1/p' jdk21/Dockerfile)
+          # Same lookup as the Bitbucket push pipeline uses for the image tag.
+          released_version=$(git describe --tags --abbrev=0 origin/main)
+          echo "develop: ${develop_version}, released on main: ${released_version}"
+          if [ "$develop_version" = "$released_version" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::${develop_version} is on develop but not released yet. Release it first, then run this workflow again."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check that no update pull request is open
+        id: open_pr
+        if: steps.released.outputs.ok == 'true' && !env.ACT
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --state open --search '"Update to" in:title' --json number,title --jq '.[] | "#\(.number) \(.title)"')
+          if [ -n "$open" ]; then
+            echo "::notice::An update pull request is still open: ${open}"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check Artifactory for the next release
+        id: check
+        if: steps.released.outputs.ok == 'true' && steps.open_pr.outputs.ok != 'false'
+        run: ./scripts/check-fs-update.sh --apply
+
+      - name: Decide whether to continue
+        id: gate
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          # A closed pull request for the same version means someone rejected it on purpose.
+          if [ -z "${ACT:-}" ]; then
+            closed=$(gh pr list --state closed --search "\"Update to ${VERSION}\" in:title" --json number --jq length)
+            if [ "$closed" -gt 0 ]; then
+              echo "::warning::A pull request for ${VERSION} was closed before. Not opening another one."
+              echo "go=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "go=true" >> "$GITHUB_OUTPUT"
+          git diff
+
+      - name: Build the Docker image
+        if: steps.gate.outputs.go == 'true'
+        run: >
+          docker build . --file jdk21/Dockerfile --no-cache
+          --build-arg FS_DOWNLOAD_SERVER
+          --build-arg FS_DOWNLOAD_SERVER_USERNAME
+          --build-arg FS_DOWNLOAD_SERVER_PASSWORD
+          --build-arg IMAGE_CREATED=$(date +%FT%T%Z)
+          --tag "$TEST_IMAGE"
+
+      - name: Start container and wait until healthy
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          cid=$(docker run -d "$TEST_IMAGE")
+          echo "CONTAINER_ID=$cid" >> "$GITHUB_ENV"
+          for _ in $(seq 1 180); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' "$cid")
+            if [ "$status" = "healthy" ]; then
+              echo "Container is healthy."
+              docker logs "$cid" 2>&1 | grep -i "run level" | tail -n 5 || true
+              exit 0
+            fi
+            [ "$status" = "unhealthy" ] && break
+            sleep 5
+          done
+          echo "Container did not become healthy (status: ${status})."
+          docker logs --tail 200 "$cid"
+          exit 1
+
+      - name: Install InSpec
+        if: steps.gate.outputs.go == 'true'
+        uses: actionshub/chef-install@main
+        with:
+          channel: stable
+          project: inspec
+          version: 5.22.58
+
+      - name: Run InSpec tests
+        if: steps.gate.outputs.go == 'true'
+        run: >
+          inspec exec ./inspec-tests
+          --input firstspirit_version=${{ steps.check.outputs.version }}
+          firstspirit_version_short=${{ steps.check.outputs.version_short }}
+          -t docker://${{ env.CONTAINER_ID }}
+          --chef-license=accept
+
+      - name: Clean up container
+        if: always() && env.CONTAINER_ID != ''
+        run: docker rm -f "$CONTAINER_ID"
+
+      - name: Create issue, branch and pull request
+        if: steps.gate.outputs.go == 'true' && !env.ACT
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.check.outputs.version }}
+          VERSION_SHORT: ${{ steps.check.outputs.version_short }}
+          VERSION_INSTALL: ${{ steps.check.outputs.version_install }}
+          CURRENT_VERSION: ${{ steps.check.outputs.current_version }}
+          CURRENT_VERSION_SHORT: ${{ steps.check.outputs.current_version_short }}
+          CURRENT_VERSION_INSTALL: ${{ steps.check.outputs.current_version_install }}
+          PENDING: ${{ steps.check.outputs.pending }}
+          REVIEWERS: ${{ vars.FS_UPDATE_REVIEWERS }}
+        run: |
+          issue_url=$(gh issue create \
+            --title "Update to ${VERSION}" \
+            --body "FirstSpirit ${VERSION} (${VERSION_SHORT}) is available in the Crownpeak Artifactory. Current version: ${CURRENT_VERSION}.")
+          issue="${issue_url##*/}"
+          branch="${issue}-${VERSION//./}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -am "Update to ${VERSION}"
+          git push origin "$branch"
+
+          if [ -n "$PENDING" ]; then
+            pending_note="Releases still waiting after this one: \`${PENDING// /\`, \`}\`. Each gets its own pull request after this one is released."
+          else
+            pending_note="This is the newest release in the Artifactory."
+          fi
+
+          body=$(cat <<EOF
+          Closes #${issue}
+
+          Automatic update found by \`check-fs-update.yml\`.
+
+          | | old | new |
+          |---|---|---|
+          | IMAGE_VERSION | ${CURRENT_VERSION} | ${VERSION} |
+          | IMAGE_VERSION_SHORT | ${CURRENT_VERSION_SHORT} | ${VERSION_SHORT} |
+          | IMAGE_VERSION_INSTALL | ${CURRENT_VERSION_INSTALL} | ${VERSION_INSTALL} |
+          | Base image digests | | refreshed |
+
+          The image was built and passed the health check and the InSpec tests in [this run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
+
+          ${pending_note}
+
+          Before merging:
+          - [ ] \`${VERSION}\` / \`${VERSION_SHORT}\` match \`VersionString.txt\` on file.crownpeak.com
+          - [ ] After the merge: release with tag \`${VERSION}\`, then start the push pipeline
+          EOF
+          )
+
+          args=(--base develop --head "$branch" --title "Update to ${VERSION}" --body "$body")
+          if [ -n "$REVIEWERS" ]; then args+=(--reviewer "$REVIEWERS"); fi
+          gh pr create "${args[@]}"
