@@ -9,6 +9,11 @@
 # the oldest release newer than the current one, using its highest build. A newer build
 # of the current release (hotfix) comes first. fs-install always uses the newest version.
 #
+# Before anything is written, the Java version the next release is compiled for is read
+# from its jar. If it is newer than the JDK of the Dockerfile (jdk21/Dockerfile -> 21), the
+# script fails: the release needs a new jdkN flavour. If it cannot be read, a warning is
+# printed and the health check of the image remains the only test.
+#
 # Usage:
 #   scripts/check-fs-update.sh [--apply] [--dockerfile PATH]
 #
@@ -21,9 +26,10 @@
 # Results are printed as key=value lines and, on GitHub Actions, written to $GITHUB_OUTPUT:
 #   changed=true|false, version, version_short, version_install,
 #   current_version, current_version_short, current_version_install,
-#   latest_version, pending (releases still waiting after this one, space separated)
+#   latest_version, pending (releases still waiting after this one, space separated),
+#   java (Java version of the next release, empty if unknown or unchanged)
 #
-# Requires: bash, curl, sed, grep, sort -V, docker buildx (for the digests).
+# Requires: bash, curl, sed, grep, sort -V, od, docker buildx (for the digests).
 
 set -euo pipefail
 
@@ -57,12 +63,13 @@ for v in FS_DOWNLOAD_SERVER FS_DOWNLOAD_SERVER_USERNAME FS_DOWNLOAD_SERVER_PASSW
 done
 [ -f "$DOCKERFILE" ] || fail "Dockerfile not found: $DOCKERFILE"
 
+# artifactory_get PATH [CURL_ARGS...]
 # Passes the credentials to curl through stdin, so they do not appear in the process list.
 artifactory_get() {
   local user_pass="${FS_DOWNLOAD_SERVER_USERNAME}:${FS_DOWNLOAD_SERVER_PASSWORD}"
   user_pass="${user_pass//\\/\\\\}"
   user_pass="${user_pass//\"/\\\"}"
-  printf 'user = "%s"\n' "$user_pass" | curl -sSf -K - "${FS_DOWNLOAD_SERVER%/}/$1"
+  printf 'user = "%s"\n' "$user_pass" | curl -sSf -K - "${@:2}" "${FS_DOWNLOAD_SERVER%/}/$1"
 }
 
 # All versions from a maven-metadata.xml that match the given regex, sorted ascending.
@@ -83,6 +90,26 @@ is_newer() { # is_newer A B -> true if A > B
 release_of() { # 5.2.261119 -> 5.2.2611
   local build="${1##*.}"
   echo "${1%.*}.${build:0:4}"
+}
+
+# detect_java VERSION - prints the Java version FirstSpirit VERSION is compiled for, or nothing.
+# Artifactory serves single files from inside a jar ("file.jar!/entry"), so only a few bytes
+# are read. The first 8 bytes of a class file hold its version (major 65 = Java 21). The
+# manifest entry X-Compile-Release-JDK is the fallback. The first request for a version can
+# take a while, Artifactory has to fetch the jar first.
+detect_java() {
+  local jar="${REPO_PATH}/fs-isolated-server/$1/fs-isolated-server-$1.jar" bytes java
+  bytes=$(artifactory_get "${jar}!/de/espirit/common/bootstrap/Bootstrap.class" -L --connect-timeout 15 --max-time 180 2>/dev/null \
+    | head -c 8 | od -An -tu1) || true
+  # shellcheck disable=SC2086
+  set -- $bytes
+  if [ $# -eq 8 ] && [ "$1" = 202 ] && [ "$2" = 254 ] && [ "$3" = 186 ] && [ "$4" = 190 ]; then
+    java=$(($7 * 256 + $8 - 44))
+    if [ "$java" -ge 8 ]; then echo "$java"; return; fi
+  fi
+  java=$(artifactory_get "${jar}!/META-INF/MANIFEST.MF" -L --connect-timeout 15 --max-time 180 2>/dev/null \
+    | tr -d '\r' | sed '/^$/q' | sed -n 's/^X-Compile-Release-JDK: *//p') || true
+  case "$java" in ''|*[!0-9]*) ;; *) echo "$java" ;; esac
 }
 
 current_arg() {
@@ -141,6 +168,29 @@ else
   if [ -n "$pending" ]; then log "Still pending after this one: ${pending}"; fi
 fi
 
+# --- java version ------------------------------------------------------------
+# The JDK of the Dockerfile is the number in its directory name (jdk21/Dockerfile -> 21).
+java=""
+if [ "$changed" = true ]; then
+  dockerfile_jdk=$(basename "$(dirname "$DOCKERFILE")" | tr -cd '0-9')
+  java=$(detect_java "$version")
+  if [ -z "$java" ]; then
+    msg="Could not read the Java version of FirstSpirit ${version}. Not checked, the health check of the image is the fallback."
+    log "WARNING: $msg"
+    if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::warning::$msg"; fi
+  elif [ -z "$dockerfile_jdk" ]; then
+    msg="FirstSpirit ${version} is compiled for Java ${java}, but ${DOCKERFILE} has no JDK number in its directory name. Not checked."
+    log "WARNING: $msg"
+    if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::warning::$msg"; fi
+  elif [ "$java" -gt "$dockerfile_jdk" ]; then
+    msg="FirstSpirit ${version} needs Java ${java}, but ${DOCKERFILE} only has JDK ${dockerfile_jdk}. A new jdk${java} flavour (jdk${java}/Dockerfile) is needed. Nothing was written."
+    if [ "${GITHUB_ACTIONS:-}" = true ]; then echo "::error::$msg"; fi
+    fail "$msg"
+  else
+    log "Java: FirstSpirit ${version} is compiled for Java ${java}, ${DOCKERFILE} has JDK ${dockerfile_jdk}."
+  fi
+fi
+
 # --- base image digests ------------------------------------------------------
 # Every line "FROM docker.io/<image>:<tag>@sha256:<digest>" is refreshed.
 declare -a digest_updates=()
@@ -186,7 +236,8 @@ version=${version}
 version_short=${version_short}
 version_install=${version_install}
 latest_version=${latest_version}
-pending=${pending}"
+pending=${pending}
+java=${java}"
 echo "$outputs"
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "$outputs" >>"$GITHUB_OUTPUT"
