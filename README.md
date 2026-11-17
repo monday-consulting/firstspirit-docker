@@ -41,9 +41,17 @@ docker run -d -v $(pwd)/config/fs-license.conf:/opt/firstspirit5/conf/fs-license
 
 ## Creating your own images
 
-The Dockerfiles are [multi-stage builds](https://docs.docker.com/build/building/multi-stage/). For creating your own
-images you need a download url and credentials. **These are mandatory and must be provided by `build-arg`s** . In the
-project **root folder** run
+The easiest way is the build script. It asks for your Rezolve Artifactory credentials, lists the available FirstSpirit
+versions (2023.1 and newer), picks the matching flavor and fs-install version and builds the images. It runs on Linux,
+macOS and Windows (Git Bash or WSL).
+
+```console
+./build-image.sh
+```
+
+Manually: the Dockerfiles are [multi-stage builds](https://docs.docker.com/build/building/multi-stage/). For creating
+your own images you need a download url and credentials. **These are mandatory and must be provided by `build-arg`s** .
+In the project **root folder** run
 
 ```console
 docker build -f jdk21/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_URL_HERE --build-arg FS_DOWNLOAD_SERVER_USERNAME=YOUR_USERNAME --build-arg FS_DOWNLOAD_SERVER_PASSWORD=YOUR_PASSWORD --build-arg IMAGE_CREATED=$(date +%FT%T%Z) -t your-registry.local/firstspirit/firstspirit_debug:YOUR-TAG-jdk21 .
@@ -51,9 +59,16 @@ docker build -f jdk21/Dockerfile --no-cache --build-arg FS_DOWNLOAD_SERVER=YOUR_
 
 ### Image flavours
 
-Currently, there is one mayor flavor, as JDK 17 is not supported for FirstSpirit versions 2026.05 and newer.
+There are two mayor flavors, depending on the Java version FirstSpirit is compiled for. Versions before 2023.01 are
+not supported.
 
-- JDK 21
+| FirstSpirit       | Compiled for | Flavor  |
+|-------------------|--------------|---------|
+| 2023.01 – 2023.10 | Java 11      | JDK 17  |
+| 2023.11 – 2026.04 | Java 17      | JDK 17  |
+| 2026.05 and newer | Java 21      | JDK 21  |
+
+Each FirstSpirit version needs the fs-install version of its time, e.g. `IMAGE_VERSION_INSTALL=3.0.5` for 2023.4.
 
 The mayor flavor is addressed by its respective `Dockerfile`. Choose your flavors by providing the `-f` flag to the
 build command. E.g. for JDK 21
@@ -141,6 +156,7 @@ The image build process can be customized by specifying the build-args at build 
 - `IMAGE_CREATED`: Image creation date, default `2023-04-14T09:15:59CEST`
 - `IMAGE_VERSION`: Image version same as FirstSpirit version, default `5.2.230411`
 - `IMAGE_VERSION_SHORT`: Image short version same as FirstSpirit version short name, default `2023.4`
+- `IMAGE_VERSION_INSTALL`: fs-install version, must fit the FirstSpirit version
 - `FS_DOWNLOAD_SERVER`: Url to the FirstSpirit download server, **mandatory**
 - `FS_DOWNLOAD_SERVER_USERNAME`: Username for the FirstSpirit download server, **mandatory**
 - `FS_DOWNLOAD_SERVER_PASSWORD`: Password for the FirstSpirit download server, **mandatory**
