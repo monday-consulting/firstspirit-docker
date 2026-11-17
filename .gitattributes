@@ -1,0 +1,6 @@
+* text=auto
+
+# Shell scripts are copied into the image or run by bash (also Git Bash on Windows),
+# so they must keep LF line endings, also in a checkout with core.autocrlf=true.
+*.sh text eol=lf
+Dockerfile text eol=lf
