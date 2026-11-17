@@ -2,7 +2,8 @@ name: Check for FirstSpirit update
 
 # Looks for the next FirstSpirit release in the Crownpeak Artifactory. If there is one, it
 # updates jdk21/Dockerfile (versions + base image digests), builds and tests the image
-# and opens an issue and a pull request against develop.
+# and opens an issue and a pull request against develop. If the release is compiled for a
+# newer Java than jdk21 has, the check fails early: a new jdkN flavour is needed first.
 #
 # Releases are handled one at a time, so every release gets its own tag and image.
 # The run does nothing while an update pull request is open or while an update is
